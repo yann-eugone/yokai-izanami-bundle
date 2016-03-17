@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <service id="izanami.doctrine_manager" class="Doctrine\ORM\EntityManager">
+            <factory service="doctrine" method="getManagerForClass"/>
+            <argument>Yokai\IzanamiBundle\Entity\Violation</argument>
+        </service>
+
+        <service id="izanami.violation_controller"
+                 class="Yokai\IzanamiBundle\Controller\ViolationController">
+            <argument type="service" id="izanami.violation_repository" />
+            <argument type="service" id="serializer" />
+        </service>
+
+        <service id="izanami.violation_repository"
+                 class="Yokai\IzanamiBundle\Entity\ViolationRepository">
+            <factory service="izanami.doctrine_manager" method="getRepository"/>
+            <argument>Yokai\IzanamiBundle\Entity\Violation</argument>
+        </service>
+
+        <service id="izanami.doctrine_service_locator"
+                 class="Yokai\IzanamiBundle\Doctrine\ServiceLocator">
+            <!-- addRegistry calls are done in the Extension -->
+        </service>
+
+        <service id="izanami.doctrine_object_repository_util"
+                 class="Yokai\IzanamiBundle\Doctrine\ObjectRepositoryUtil"/>
+
+        <service id="izanami.clean_violations_event_subscriber"
+                 class="Yokai\IzanamiBundle\EventListener\CleanViolationsSubscriber">
+            <tag name="doctrine.event_subscriber"/>
+        </service>
+
+        <service id="izanami.collect_observable_event_subscriber"
+                 class="Yokai\IzanamiBundle\EventListener\CollectObservableSubscriber">
+            <argument type="service" id="event_dispatcher"/>
+            <tag name="doctrine.event_subscriber"/>
+        </service>
+
+        <service id="izanami.trigger_analyze_event_subscriber"
+                 class="Yokai\IzanamiBundle\EventListener\TriggerAnalyzeSubscriber">
+            <argument type="service" id="service_container"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="izanami.violation_normalizer"
+                 class="Yokai\IzanamiBundle\Normalizer\ViolationNormalizer">
+            <argument type="service" id="translator" />
+            <argument>messages</argument><!--todo config-->
+            <tag name="serializer.normalizer"/>
+        </service>
+
+        <service id="izanami.violation_manager"
+                 class="Yokai\IzanamiBundle\Violation\ViolationManager">
+            <argument type="service" id="izanami.violation_config_registry" />
+            <argument type="service" id="izanami.doctrine_manager" />
+            <argument type="service" id="izanami.violation_repository" />
+            <argument type="service" id="event_dispatcher" />
+            <argument type="service" id="logger" />
+        </service>
+
+        <service id="izanami.violation_config_registry"
+                 class="Yokai\IzanamiBundle\Violation\ViolationConfigRegistry">
+        </service>
+
+    </services>
+
+</container>
